@@ -1,9 +1,17 @@
 FLAGS := -ldflags "-s -w" -trimpath
 NOCGO := CGO_ENABLED=0
+GOOS := linux
+GOARCH := amd64
 
 build:
 	go vet && go fmt
+	env GOOS=${os} \
+	GOARCH=${arch} \
 	${NOCGO} go build ${FLAGS} -o gossa
+
+docker:
+	docker build -f support/build.Dockerfile \
+	-t fileserver:latest .
 
 install:
 	sudo cp gossa /usr/local/bin
