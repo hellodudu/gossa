@@ -1,7 +1,7 @@
 /* eslint-env browser */
 /* eslint-disable no-multi-str */
 
-function cancelDefault (e) {
+function cancelDefault(e) {
   e.preventDefault()
   e.stopPropagation()
 }
@@ -45,7 +45,7 @@ const flicker = w => w.classList.remove('runFade') || void w.offsetWidth || w.cl
 manualUpload.addEventListener('change', () => Array.from(manualUpload.files).forEach(f => isDupe(f.name) || postFile(f, '/' + f.name)), false)
 
 // Soft nav
-async function browseTo (href, flickerDone, skipHistory) {
+async function browseTo(href, flickerDone, skipHistory) {
   try {
     const r = await fetch(href, { credentials: 'include' })
     const t = await r.text()
@@ -87,15 +87,15 @@ window.onClickLink = e => {
   if (isFolder(a)) {
     browseTo(a.href)
     return false
-  // enable notepad if relevant
+    // enable notepad if relevant
   } else if (!window.ro && isTextFile(a.innerText) && !isEditorMode()) {
     padOn(a)
     return false
-  // toggle picture carousel
+    // toggle picture carousel
   } else if (isPic(a.href) && !isPicMode()) {
     picsOn(a.href)
     return false
-  // toggle videos mode
+    // toggle videos mode
   } else if (isVideo(a.href) && !isVideoMode()) {
     videoOn(a.href)
     return false
@@ -107,7 +107,7 @@ window.onClickLink = e => {
 }
 
 let softStatePushed
-function pushSoftState (d) {
+function pushSoftState(d) {
   if (softStatePushed) { return }
   softStatePushed = true
   history.pushState({}, '', encodeURI(d))
@@ -123,7 +123,7 @@ const prevPage = (url, skipHistory) => window.quitAll() || isAtExtraPath(url) ||
 window.onpopstate = () => prevPage(location.href, true)
 
 // RPC
-function upload (id, what, path, cbDone, cbErr, cbUpdate) {
+function upload(id, what, path, cbDone, cbErr, cbUpdate) {
   const xhr = new XMLHttpRequest()
   xhr.open('POST', location.origin + window.extraPath + '/post')
   xhr.setRequestHeader('gossa-path', path)
@@ -134,7 +134,7 @@ function upload (id, what, path, cbDone, cbErr, cbUpdate) {
   xhr.send(what)
 }
 
-function rpc (call, args, cb) {
+function rpc(call, args, cb) {
   console.log('RPC', call, args)
   const xhr = new XMLHttpRequest()
   xhr.open('POST', location.origin + window.extraPath + '/rpc')
@@ -157,7 +157,7 @@ let totalUploadedSize = []
 const dupe = test => allA.find(a => a.innerHTML.replace('/', '') === test)
 const isDupe = t => dupe(t) ? alert(t + ' already already exists') || true : false
 
-function shouldRefresh () {
+function shouldRefresh() {
   totalDone += 1
   if (totalUploads === totalDone) {
     window.onbeforeunload = null
@@ -172,7 +172,7 @@ function shouldRefresh () {
   }
 }
 
-function updatePercent (ev) {
+function updatePercent(ev) {
   totalUploadedSize[ev.target.id] = ev.loaded
   const ttlDone = totalUploadedSize.reduce((s, x) => s + x)
   const pc = Math.floor(100 * ttlDone / totalUploadsSize) + '%'
@@ -180,7 +180,7 @@ function updatePercent (ev) {
   upBarPc.style.width = pc
 }
 
-function postFile (file, path) {
+function postFile(file, path) {
   if (window.ro) return
   path = decodeURI(location.pathname).slice(0, -1) + path
   window.onbeforeunload = warningMsg
@@ -196,9 +196,25 @@ function postFile (file, path) {
   upload(totalUploads, formData, encodeURIComponent(path), shouldRefresh, null, updatePercent)
 }
 
-const parseDomFolder = f => f.createReader().readEntries(e => e.forEach(i => parseDomItem(i)))
+function parseDomFolder(domFile) {
+  var reader = domFile.createReader()
 
-function parseDomItem (domFile, shoudCheckDupes) {
+  var fnReadEntries = function (entries) {
+    entries.forEach(function (entry) {
+      parseDomItem(entry)
+    });
+    if (entries.length > 0) {
+      reader.readEntries(fnReadEntries);
+    }
+    console.log('read item num:', entries.length)
+  };
+  reader.readEntries(fnReadEntries)
+}
+
+
+function parseDomItem(domFile, shoudCheckDupes) {
+  console.log('parse Dom Item:', domFile.fullPath)
+
   if (shoudCheckDupes && isDupe(domFile.name)) {
     return
   }
@@ -211,7 +227,7 @@ function parseDomItem (domFile, shoudCheckDupes) {
   }
 }
 
-function pushEntry (entry) {
+function pushEntry(entry) {
   if (!entry.webkitGetAsEntry && !entry.getAsEntry) {
     return alert('Unsupported browser ! Please update to chrome/firefox.')
   } else {
@@ -236,7 +252,7 @@ const setBackgroundLinks = t => { t.classList.add('highlight') }
 
 const getLink = () => document.querySelector('.highlight') || {}
 
-const resetBackgroundLinks = () => { try { getLink().classList.remove('highlight') } catch(e) { /* */ } } // eslint-disable-line
+const resetBackgroundLinks = () => { try { getLink().classList.remove('highlight') } catch (e) { /* */ } } // eslint-disable-line
 
 // Not the nicest - sometimes, upon hover, firefox reports nodeName === '#text', and chrome reports nodeName === 'A'...
 const getClosestRow = t => t.nodeName === '#text' ? t.parentElement.parentElement : t.nodeName === 'A' ? t.parentElement : t
@@ -258,7 +274,7 @@ document.ondragenter = e => {
   if (!draggingSrc) {
     upGrid.style.display = 'flex'
     e.dataTransfer.dropEffect = 'copy'
-  // Or highlight entry if drag and drop
+    // Or highlight entry if drag and drop
   } else if (draggingSrc) {
     const t = getClosestRow(e.target)
     isFolder(t.firstChild) && setBackgroundLinks(t)
@@ -286,7 +302,7 @@ document.ondrop = e => {
   if (draggingSrc && t) {
     const dest = t.innerHTML + draggingSrc
     ensureMove() || mvCall(prependPath(draggingSrc), prependPath(dest), refresh)
-  // ... or upload
+    // ... or upload
   } else if (e.dataTransfer.items.length) {
     Array.from(e.dataTransfer.items).forEach(pushEntry)
   }
@@ -302,7 +318,7 @@ const textTypes = ['.txt', '.rtf', '.md', '.markdown', '.log', '.yaml', '.yml']
 const isTextFile = src => src && textTypes.find(type => src.toLocaleLowerCase().includes(type))
 let fileEdited
 
-function saveText (quitting) {
+function saveText(quitting) {
   const formData = new FormData()
   formData.append(fileEdited, editor.value)
   const path = encodeURIComponent(decodeURI(location.pathname) + fileEdited)
@@ -321,13 +337,13 @@ function saveText (quitting) {
   })
 }
 
-function padOff () {
+function padOff() {
   if (!isEditorMode()) { return }
   saveText(true)
   return true
 }
 
-async function padOn (a) {
+async function padOn(a) {
   if (a) {
     try {
       fileEdited = a.innerHTML
@@ -360,7 +376,7 @@ async function padOn (a) {
 window.displayPad = padOn
 
 // quit pictures or editor
-function resetView () {
+function resetView() {
   softStatePushed = false
   table.style.display = 'table'
   picsHolder.src = transparentPixel
@@ -410,12 +426,12 @@ window.rename = (e, commit) => {
   }
 }
 
-function aboveBelowRightin (el) {
+function aboveBelowRightin(el) {
   const itemPos = el.getBoundingClientRect()
   return itemPos.top < 0 ? -1 : itemPos.bottom > window.innerHeight ? 1 : 0
 }
 
-function scrollToArrow () {
+function scrollToArrow() {
   const el = getASelected()
   while (1) {
     const pos = aboveBelowRightin(el)
@@ -429,14 +445,14 @@ function scrollToArrow () {
   }
 }
 
-function clearArrowSelected () {
+function clearArrowSelected() {
   const arr = getArrowSelected()
   if (!arr) { return }
   arr.classList.remove('arrow-selected')
 }
 
 window.setCursorTo = setCursorTo
-function setCursorTo (where) {
+function setCursorTo(where) {
   if (!where) return false
   clearArrowSelected()
   let a = allA.find(el => el.innerText === where || el.innerText === where + '/')
@@ -456,7 +472,7 @@ function setCursorTo (where) {
   return true
 }
 
-function moveArrow (down) {
+function moveArrow(down) {
   const all = Array.from(document.querySelectorAll('.arrow-icon'))
   let i = all.findIndex(el => el.classList.contains('arrow-selected'))
 
@@ -479,7 +495,7 @@ const isTop = () => window.scrollY === 0
 const isBottom = () => (window.innerHeight + window.scrollY) >= document.body.offsetHeight
 const hasScroll = () => table.clientHeight > window.innerHeight
 
-function movePage (up) {
+function movePage(up) {
   const current = getASelected().href
 
   if (!hasScroll()) return
@@ -514,7 +530,7 @@ const isPic = src => src && picTypes.find(type => src.toLocaleLowerCase().includ
 const isPicMode = () => pics.style.display === 'flex'
 window.picsNav = () => picsNav(true)
 
-function setImage () {
+function setImage() {
   const src = allImgs[imgsIndex]
   picsHolder.src = src
   const name = src.split('/').pop()
@@ -522,7 +538,7 @@ function setImage () {
   history.replaceState({}, '', encodeURI(name))
 }
 
-function picsOn (href) {
+function picsOn(href) {
   imgsIndex = allImgs.findIndex(el => el.includes(href))
   setImage()
   table.style.display = 'none'
@@ -533,14 +549,14 @@ function picsOn (href) {
   return true
 }
 
-function picsOff () {
+function picsOff() {
   if (!isPicMode()) { return }
   resetView()
   softPrev()
   return true
 }
 
-function picsNav (down) {
+function picsNav(down) {
   if (!isPicMode()) { return false }
 
   if (down) {
@@ -576,7 +592,7 @@ const videoFf = future => { videoHolder.currentTime += future ? 10 : -10 }
 const videoSound = up => { videoHolder.volume += up ? 0.1 : -0.1 }
 videoHolder.oncanplay = () => videoHolder.play()
 
-async function videoOn (src) {
+async function videoOn(src) {
   const name = src.split('/').pop()
   table.style.display = 'none'
   crossIcon.style.display = 'block'
@@ -591,7 +607,7 @@ async function videoOn (src) {
   return true
 }
 
-function videosOff () {
+function videosOff() {
   if (!isVideoMode()) { return }
   localStorage.setItem('video-time' + videoHolder.src, videoHolder.currentTime)
   resetView()
@@ -604,13 +620,13 @@ const isHelpMode = () => help.style.display === 'block'
 
 const helpToggle = () => isHelpMode() ? helpOff() : helpOn()
 
-function helpOn () {
+function helpOn() {
   help.style.display = 'block'
   table.style.display = 'none'
 }
 
 window.helpOff = helpOff
-function helpOff () {
+function helpOff() {
   if (!isHelpMode()) return
   help.style.display = 'none'
   table.style.display = 'table'
@@ -619,7 +635,7 @@ function helpOff () {
 
 // Paste handler
 let cuts = []
-function onPaste () {
+function onPaste() {
   if (!cuts.length) { return refresh() }
   const a = getASelected()
   const root = cuts.pop()
@@ -629,13 +645,13 @@ function onPaste () {
   mvCall(root, dest + filename, onPaste)
 }
 
-function onCut () {
+function onCut() {
   const a = getASelected()
   a.classList.add('linkSelected')
   cuts.push(prependPath(decode(a.href)))
 }
 
-function dl (a) {
+function dl(a) {
   const orig = a.onclick
   a.onclick = ''
 
@@ -658,7 +674,7 @@ function dl (a) {
 let typedPath = ''
 let typedToken = null
 
-function cpPath () {
+function cpPath() {
   var t = document.createElement('textarea')
   t.value = getASelected().href
   document.body.appendChild(t)
@@ -778,11 +794,11 @@ document.body.addEventListener('keydown', e => {
   }
 }, false)
 
-function setTitle () {
+function setTitle() {
   pageH1.innerHTML = '<span>' + pageH1.innerText.split('/').join('/</span><span>') + '</span>'
 }
 
-function init () {
+function init() {
   allA = Array.from(document.querySelectorAll('a.list-links'))
   allImgs = allA.map(el => el.href).filter(isPic)
   imgsIndex = softStatePushed = 0
