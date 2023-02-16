@@ -11,7 +11,15 @@ build:
 
 docker:
 	docker build -f support/build.Dockerfile \
-	-t fileserver:latest .
+	-t fileserver:latest \
+	--build-arg GOOS=${GOOS} \
+	--build-arg GOARCH=${GOARCH} \
+	.
+
+docker_push:
+	# 阿里云
+	docker tag fileserver registry.cn-beijing.aliyuncs.com/hellodudu86/fileserver:latest
+	docker push registry.cn-beijing.aliyuncs.com/hellodudu86/fileserver:latest
 
 install:
 	sudo cp gossa /usr/local/bin
