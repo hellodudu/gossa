@@ -244,7 +244,7 @@ func main() {
 	var err error
 	rootPath, err = filepath.Abs(rootPath)
 	check(err)
-	server := &http.Server{Addr: *host + ":" + *port, Handler: handler}
+	// server := &http.Server{Addr: *host + ":" + *port, Handler: handler}
 
 	// clean shutdown - used only for coverage test
 	// go func() {
@@ -265,7 +265,22 @@ func main() {
 	handler = http.StripPrefix(*extraPath, http.FileServer(http.Dir(rootPath)))
 
 	fmt.Printf("Gossa starting on directory %s\nListening on http://%s:%s%s\n", rootPath, *host, *port, *extraPath)
-	if err = server.ListenAndServe(); err != http.ErrServerClosed {
+
+	WrappedMux := WrapCrossOrigin(http.DefaultServeMux)
+	if err = http.ListenAndServe(*host+":"+*port, WrappedMux); err != http.ErrServerClosed {
 		check(err)
 	}
+
+	// if err = server.ListenAndServe(); err != http.ErrServerClosed {
+	// 	check(err)
+	// }
+}
+
+func WrapCrossOrigin(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		//Allow CORS here By * or specific origin
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		handler.ServeHTTP(w, r)
+	})
 }
