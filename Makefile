@@ -18,6 +18,7 @@ docker:
 
 docker_push:
 	# 阿里云
+	docker login registry.cn-beijing.aliyuncs.com/hellodudu86
 	docker tag fileserver registry.cn-beijing.aliyuncs.com/hellodudu86/fileserver:latest
 	docker push registry.cn-beijing.aliyuncs.com/hellodudu86/fileserver:latest
 
